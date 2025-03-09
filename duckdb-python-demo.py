@@ -139,7 +139,16 @@ result = con.execute(f"""
 print(header)
 print("-" * (DATE_WIDTH + CODE_WIDTH + COUNT_WIDTH + PERCENT_WIDTH + 6))  # Adjust separator
 sql_results = get_all_rows(con, sql)
+
+# Track the previous date and print rows with split lines
+previous_date = None
 for row in result:
+    current_date = row[0]
+    # Add a split line if the date changes
+    if previous_date is not None and current_date != previous_date:
+        print("=" * (DATE_WIDTH + CODE_WIDTH + COUNT_WIDTH + PERCENT_WIDTH + 6))  # Split line
+    
+    # Format and print the current row
     date_str = str(row[0])
     code_str = str(row[1])
     count_str = str(row[2])
@@ -150,6 +159,8 @@ for row in result:
         f"{YELLOW}{count_str:<{COUNT_WIDTH}}{RESET} | "
         f"{MAGENTA}{percent_str:<{PERCENT_WIDTH}}{RESET}"
     )
+    # Update the previous date
+    previous_date = current_date
 
 
 # Close the connection (optional for in-memory DB)
