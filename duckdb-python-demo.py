@@ -70,6 +70,7 @@ SELECT "capture date", "response code", SUM(count) as total_rejections
     ORDER BY "capture date" asc, sum(count) desc
 """
 sql_results = get_all_rows(con, sql)
+sql_results.write_csv("result-group-by-capture-date-rejected.csv")  
 
 
 sql = """
