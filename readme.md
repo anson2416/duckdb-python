@@ -10,6 +10,7 @@ This repo contains the Python code to demostrate how to read a csv file with Duc
 python -m venv .venv
 
 pip install duckdb
+pip install pandas
 
 python duckdb-python-demo.py
 
