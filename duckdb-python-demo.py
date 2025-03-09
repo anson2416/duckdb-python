@@ -3,18 +3,25 @@ import duckdb
 BLUE = "\033[94m"
 GREEN = "\033[92m"
 YELLOW = "\033[93m"
+MAGENTA = "\033[95m"
 RESET = "\033[0m"  # Resets color to default
-
-# Define column widths (adjust these based on your data)
-DATE_WIDTH = 15  # Width for "capture date"
-CODE_WIDTH = 15  # Width for "response code"
-COUNT_WIDTH = 15  # Width for "Total Rejections"
-
 
 
 HEADER_CAPTURE_DATE = "capture date"
 HEADER_RESPONSE_CODE= "response code"
 HEADER_COUNT = "count"
+
+# Define column widths (adjust these based on your data)
+DATE_WIDTH = 15  # Width for "capture date"
+CODE_WIDTH = 15  # Width for "response code"
+COUNT_WIDTH = 15  # Width for "Total Rejections"
+PERCENT_WIDTH = 15
+
+# DATE_WIDTH = max(len(HEADER_CAPTURE_DATE), max(len(str(row[0])) for row in result))
+# CODE_WIDTH = max(len(HEADER_RESPONSE_CODE), max(len(str(row[1])) for row in result))
+# COUNT_WIDTH = max(len("Total Rejections"), max(len(str(row[2])) for row in result))
+
+
 
 # Print the header with colors and alignment
 header = (
@@ -33,6 +40,7 @@ def print_all_rows(con):
 
 def get_all_rows(con, sql):
     # Query the table and fetch results
+    print(f"sql={sql}")
     result = con.execute(sql).fetchall()
 
     # Print the results
@@ -106,6 +114,42 @@ for row in sql_results:
         f"{YELLOW}{count_str:<{COUNT_WIDTH}}{RESET}"
     )
 
+
+sql = f"""
+SELECT "{HEADER_CAPTURE_DATE}", "{HEADER_RESPONSE_CODE}", SUM("{HEADER_COUNT}") as total_rejections
+    FROM table_reject_codes
+    WHERE "{HEADER_RESPONSE_CODE}" <> '0000'
+    GROUP BY "{HEADER_CAPTURE_DATE}", "{HEADER_RESPONSE_CODE}"
+    ORDER BY "{HEADER_CAPTURE_DATE}" asc, sum("{HEADER_COUNT}") desc
+"""
+sql_results = get_all_rows(con, sql)
+
+
+result = con.execute(f"""
+    SELECT 
+        "{HEADER_CAPTURE_DATE}",
+        "{HEADER_RESPONSE_CODE}",
+        SUM("count") AS total_rejections,
+        100.0 * SUM("count") / SUM(SUM("count")) OVER (PARTITION BY "{HEADER_CAPTURE_DATE}") AS percentage
+    FROM read_csv_auto('reject-code.csv')
+    GROUP BY "{HEADER_CAPTURE_DATE}", "{HEADER_RESPONSE_CODE}"
+    ORDER BY "{HEADER_CAPTURE_DATE}" ASC, SUM("count") DESC
+""").fetchall()
+# Print each row with aligned columns and colors
+print(header)
+print("-" * (DATE_WIDTH + CODE_WIDTH + COUNT_WIDTH + PERCENT_WIDTH + 6))  # Adjust separator
+sql_results = get_all_rows(con, sql)
+for row in result:
+    date_str = str(row[0])
+    code_str = str(row[1])
+    count_str = str(row[2])
+    percent_str = f"{row[3]:.2f}%"  # Format percentage with 2 decimal places
+    print(
+        f"{BLUE}{date_str:<{DATE_WIDTH}}{RESET} | "
+        f"{GREEN}{code_str:<{CODE_WIDTH}}{RESET} | "
+        f"{YELLOW}{count_str:<{COUNT_WIDTH}}{RESET} | "
+        f"{MAGENTA}{percent_str:<{PERCENT_WIDTH}}{RESET}"
+    )
 
 
 # Close the connection (optional for in-memory DB)
