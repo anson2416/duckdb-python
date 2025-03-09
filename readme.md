@@ -15,3 +15,12 @@ pip install pandas
 python duckdb-python-demo.py
 
 ```
+
+Diagram:
+
+```sh
+pip install matplotlib 
+
+pip install plotly
+
+```

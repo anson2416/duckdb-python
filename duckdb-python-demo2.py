@@ -1,5 +1,6 @@
 import duckdb
 import pandas as pd
+import plotly.express as px
 
 def sqlite3_demo():
     import sqlite3
@@ -64,9 +65,41 @@ def duckdb_exec():
 def duckdb_plt():
     conn = duckdb.connect("somedb.ddb")
     conn.execute("CREATE TABLE IF NOT EXISTS people AS SELECT * FROM read_csv_auto('mydata.csv')")
-    print(conn.execute("SELECT job, count(*) FROM people group by job;").fetchall())
+    # result = conn.execute("SELECT job, count(*) FROM people group by job;").fetchall()
+    result_df = conn.execute("SELECT job, count(*) FROM people group by job;").fetch_df()
+    result_df.columns = ['job', 'count']
+
+    # result_df = conn.execute("""
+    #     SELECT job AS job, COUNT(*) AS count 
+    #     FROM people 
+    #     GROUP BY job
+    # """).fetchdf()
+    print(result_df)
 
     conn.close()  
+
+    # Create an interactive bar chart
+    fig = px.bar(
+        result_df,
+        x='job',
+        y='count',
+        title='Number of People by Job',
+        labels={'job': 'Job', 'count': 'Number of People'},
+        color='job',  # Optional: different colors for each job
+    )
+
+    # Customize layout
+    fig.update_layout(
+        xaxis_title="Job",
+        yaxis_title="Number of People",
+        xaxis={'tickangle': 45},
+        showlegend=False  # Hide legend if using color per job
+    )
+
+    # Show the plot
+    fig.show()
+    # Plotly: Use fig.write_html('job_counts.html') for an HTML file or fig.write_image('job_counts.png') (requires pip install kaleido).
+    # Colors: Customize colors in Matplotlib with color=['red', 'blue', ...] (list matching job count) or in Plotly via color_discrete_sequence.
 
 
 if __name__ == '__main__':
