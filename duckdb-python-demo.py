@@ -40,12 +40,12 @@ def print_all_rows(con):
 
 def get_all_rows(con, sql):
     # Query the table and fetch results
-    print(f"sql={sql}")
+    # print(f"sql={sql}")
     result = con.execute(sql).fetchall()
 
     # Print the results
-    for row in result:
-        print(row)
+    # for row in result:
+        # print(row)
 
     return result
     
@@ -146,7 +146,8 @@ for row in result:
     current_date = row[0]
     # Add a split line if the date changes
     if previous_date is not None and current_date != previous_date:
-        print("=" * (DATE_WIDTH + CODE_WIDTH + COUNT_WIDTH + PERCENT_WIDTH + 6))  # Split line
+        # print("=" * (DATE_WIDTH + CODE_WIDTH + COUNT_WIDTH + PERCENT_WIDTH + 6))  # Split line
+        print(f"{BLUE}{'=' * (DATE_WIDTH + CODE_WIDTH + COUNT_WIDTH + PERCENT_WIDTH + 6)}{RESET}")  # Blue split line
     
     # Format and print the current row
     date_str = str(row[0])
